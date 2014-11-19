@@ -3,7 +3,7 @@ import sys
 import CompuCell
 import random 
 import math
-import bionetAPI
+#import bionetAPI
 import CompuCellSetup  
 from PySteppables import *
 from PlayerPython import *
@@ -217,68 +217,32 @@ class InitialCondition(MitosisSteppableBase):
 
 class DeltaNotchClass(SteppableBasePy):
     def __init__(self,_simulator,_frequency):
-        SteppableBasePy.__init__(self,_simulator,_frequency)
-        bionetAPI.initializeBionetworkManager(self.simulator)
-        
+        SteppableBasePy.__init__(self,_simulator,_frequency)        
     def start(self):
-        #Loading model
+        # adding options that setup SBML solver integrator - these are optional but useful when encounteting integration instabilities              
         Name = "DeltaNotch"
         Key  = "DN"
-        simulationDir=os.path.dirname (os.path.abspath( __file__ ))
-        Path= os.path.join(simulationDir,"SLIMI4R.sbml")
-        Path=os.path.abspath(Path) # normalizing path
-        
-        IntegrationStep = 0.2
-        bionetAPI.loadSBMLModel(Name, Path, Key, IntegrationStep)
-        
-        bionetAPI.addSBMLModelToTemplateLibrary(Name,"TypeA")
-        bionetAPI.initializeBionetworks()
-        
+        #simulationDir=os.path.dirname (os.path.abspath( __file__ ))
+        modelFile='Simulation/DN_Collier.sbml' 
+        options={'relative':1e-10,'absolute':1e-12,'steps':10}
+        self.setSBMLGlobalOptions(options)
+        self.addSBMLToCellTypes(_modelFile=modelFile,_modelName="DN",_types=[self.TYPEA],_stepSize=0.2)  
+        print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~testing~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         #Initial conditions
+        state={} #dictionary to store state veriables of the SBML model
         for cell in self.cellListByType(1):
-            D = random.uniform(0.9,1.0)
-            N = random.uniform(0.9,1.0)
-            B = random.uniform(0.9,1.0)
-            R = random.uniform(0.9,1.0)
-            bionetAPI.setBionetworkValue("DN_D",D,cell.id)
-            bionetAPI.setBionetworkValue("DN_N",N,cell.id)
-            bionetAPI.setBionetworkValue("DN_B",B,cell.id)
-            bionetAPI.setBionetworkValue("DN_R",R,cell.id)
-            cellDict=CompuCell.getPyAttrib(cell)
-            cellDict["D"]=D
-            cellDict["N"]=N
-            cellDict["B"]=B
-            cellDict["R"]=R
-    def step(self,mcs):
-        for cell in self.cellListByType(1):
-            Davg=0.0; Navg=0.0; nn=0
-            cellNeighborList=self.getCellNeighbors(cell)
-            for neighbor , commonSurfaceArea in self.getCellNeighborDataList(cell):                
-                if (neighbor and neighbor.type == 1):
-                    #print "~~~~~~~~~~~~~~~~~~neighbor.id=",neighbor.id,",neighbor.type=",neighbor.type,",Dll=",bionetAPI.getBionetworkValue("DN_D",neighbor.id)
-                    nn+=1
-                    Davg+=bionetAPI.getBionetworkValue("DN_D",neighbor.id)
-                    Navg+=bionetAPI.getBionetworkValue("DN_N",neighbor.id)
-            if (nn>0):
-                Davg=Davg/nn
-                Navg=Navg/nn  
-            #print "~~~~~~~~~~~~~~~~~~cell.id=",cell.id,"\t# of neighbor cells=",nn,"\tDavg=",Davg,"\tNavg=",Navg            
-# Make sure CenterOfMass plugin is loaded
-# READ ONLY ACCES
-# Wnt Gradient       
-            yCOM=((1.0*(self.dim.y-cell.yCOM))/self.dim.y)
-            WNT = math.pow(yCOM,3)
-            bionetAPI.setBionetworkValue("DN_Davg",Davg,cell.id)
-            bionetAPI.setBionetworkValue("DN_Navg",Navg,cell.id)
-            bionetAPI.setBionetworkValue("DN_WNT",WNT,cell.id)
+            state['D'] = random.uniform(0.9,1.0)
+            state['N'] = random.uniform(0.9,1.0)
+#             state['B'] = random.uniform(0.9,1.0)
+#             state['R'] = random.uniform(0.9,1.0)
+            self.setSBMLState(_modelName=Key,_cell=cell,_state=state)
+            cellDict=self.getDictionaryAttribute(cell)
+            cellDict['D']=state['D']
+            cellDict['N']=state['N']
+#             cellDict['B']=state['B']
+#             cellDict['R']=state['R']
+        self.timestepSBML()
 
-            cellDict=CompuCell.getPyAttrib(cell)
-            cellDict["D"]=bionetAPI.getBionetworkValue("DN_D",cell.id)
-            cellDict["N"]=bionetAPI.getBionetworkValue("DN_N",cell.id)
-            cellDict["B"]=bionetAPI.getBionetworkValue("DN_B",cell.id)
-            cellDict["R"]=bionetAPI.getBionetworkValue("DN_R",cell.id)
-            
-        bionetAPI.timestepBionetworks()
 class MitosisSteppable(MitosisSteppableBase):
     def __init__(self, _simulator, _frequency=1):
         MitosisSteppableBase.__init__(self, _simulator, _frequency)
@@ -301,33 +265,32 @@ class MitosisSteppable(MitosisSteppableBase):
         childCell.targetVolume = 1000
 
         childCell.lambdaVolume = parentCell.lambdaVolume;
-        
-        bionetAPI.copyBionetworkFromParent( parentCell, childCell )
+        self.copySBMLs(_fromCell=parentCell,_toCell=childCell)
         childCellDict=CompuCell.getPyAttrib(childCell)
         parentCellDict=CompuCell.getPyAttrib(parentCell)
         childCellDict["D"]=random.uniform(0.9,1.0)*parentCellDict["D"]
         childCellDict["N"]=random.uniform(0.9,1.0)*parentCellDict["N"]
-        childCellDict["B"]=random.uniform(0.9,1.0)*parentCellDict["B"]
-        childCellDict["R"]=random.uniform(0.9,1.0)*parentCellDict["R"]
+#         childCellDict["B"]=random.uniform(0.9,1.0)*parentCellDict["B"]
+#         childCellDict["R"]=random.uniform(0.9,1.0)*parentCellDict["R"]
 
 class ExtraFields(SteppableBasePy):
     def __init__(self,_simulator,_frequency=1):
         SteppableBasePy.__init__(self,_simulator,_frequency)
+        self.scalarFieldD=CompuCellSetup.createScalarFieldCellLevelPy("Delta")
+        self.scalarFieldN=CompuCellSetup.createScalarFieldCellLevelPy("Notch")
+#         self.scalarFieldB=CompuCellSetup.createScalarFieldCellLevelPy("B-cat")
+#         self.scalarFieldR=CompuCellSetup.createScalarFieldCellLevelPy("NICD")
     
-    def setScalarFields(self,_field1,_field2,_field3,_field4):
-        self.scalarField1=_field1
-        self.scalarField2=_field2  
-        self.scalarField3=_field3
-        self.scalarField4=_field4  
-    def step(self,mcs):
-        clearScalarValueCellLevel(self.scalarField1)
-        clearScalarValueCellLevel(self.scalarField2)
-        clearScalarValueCellLevel(self.scalarField3)
-        clearScalarValueCellLevel(self.scalarField4)
+    def step(self,mcs):     
+        self.scalarFieldD.clear()
+        self.scalarFieldN.clear()
+#         self.scalarFieldB.clear()
+#         self.scalarFieldR.clear()
         for cell in self.cellListByType(1):
             cellDict=CompuCell.getPyAttrib(cell)
-            fillScalarValueCellLevel(self.scalarField1,cell,cellDict["D"])
-            fillScalarValueCellLevel(self.scalarField2,cell,cellDict["N"])
-            fillScalarValueCellLevel(self.scalarField3,cell,cellDict["B"])
-            fillScalarValueCellLevel(self.scalarField4,cell,cellDict["R"])
+            self.scalarFieldD[cell]=cellDict['D']
+            self.scalarFieldN[cell]=cellDict['N']
+#             self.scalarFieldB[cell]=cellDict['B']
+#             self.scalarFieldR[cell]=cellDict['R']
+            
 

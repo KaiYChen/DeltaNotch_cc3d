@@ -78,15 +78,8 @@ mitosisSteppable=MitosisSteppable(_simulator=sim,_frequency=1)
 steppableRegistry.registerSteppable(mitosisSteppable)
 
 #Create extra player fields here or add attributes
-dim=sim.getPotts().getCellFieldG().getDim()
-DeltaField=simthread.createScalarFieldCellLevelPy("Delta")
-NotchField=simthread.createScalarFieldCellLevelPy("Notch")
-WntField=simthread.createScalarFieldCellLevelPy("Wnt")
-NICDField=simthread.createScalarFieldCellLevelPy("NICD")
 from DeltaNotchSteppables import ExtraFields
 extraFields=ExtraFields(_simulator=sim,_frequency=5)
-extraFields.setScalarFields(DeltaField,NotchField,WntField,NICDField)
 steppableRegistry.registerSteppable(extraFields)
 
 CompuCellSetup.mainLoop(sim,simthread,steppableRegistry)
-##sys.exit()
