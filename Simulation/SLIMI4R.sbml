@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created by XMLPrettyPrinter on 8/6/2014 from  -->
+<sbml xmlns = "http://www.sbml.org/sbml/level2" level = "2" version = "1">
+   <model id = "cell">
+      <listOfCompartments>
+         <compartment id = "compartment" size = "1"/>
+      </listOfCompartments>
+      <listOfSpecies>
+         <species id = "Davg" boundaryCondition = "true" initialConcentration = "0.4" compartment = "compartment"/>
+         <species id = "Navg" boundaryCondition = "true" initialConcentration = "50" compartment = "compartment"/>
+         <species id = "X" boundaryCondition = "true" initialConcentration = "0" compartment = "compartment"/>
+         <species id = "WNT" boundaryCondition = "true" initialConcentration = "10" compartment = "compartment"/>
+         <species id = "D" boundaryCondition = "false" initialConcentration = "0.1" compartment = "compartment"/>
+         <species id = "N" boundaryCondition = "false" initialConcentration = "1" compartment = "compartment"/>
+         <species id = "B" boundaryCondition = "false" initialConcentration = "0.1" compartment = "compartment"/>
+         <species id = "R" boundaryCondition = "false" initialConcentration = "0.1" compartment = "compartment"/>
+      </listOfSpecies>
+      <listOfParameters>
+         <parameter id = "AlphaN" value = "0.01"/>
+         <parameter id = "BetaN" value = "10"/>
+         <parameter id = "nn" value = "1"/>
+         <parameter id = "KSN" value = "0.8"/>
+         <parameter id = "Gamma" value = "1"/>
+         <parameter id = "kc" value = "0.1"/>
+         <parameter id = "kt" value = "1"/>
+         <parameter id = "AlphaD" value = "0.001"/>
+         <parameter id = "BetaD" value = "10"/>
+         <parameter id = "m" value = "1"/>
+         <parameter id = "KDB" value = "1"/>
+         <parameter id = "Gamma" value = "1"/>
+         <parameter id = "kt" value = "1"/>
+         <parameter id = "BetaB" value = "1"/>
+         <parameter id = "Gamma" value = "1"/>
+         <parameter id = "KBW" value = "1E-5"/>
+         <parameter id = "nn" value = "1"/>
+         <parameter id = "KSN" value = "0.8"/>
+      </listOfParameters>
+      <listOfReactions>
+         <reaction id = "_J1" reversible = "false">
+            <listOfReactants>
+               <speciesReference species = "X" stoichiometry = "1"/>
+            </listOfReactants>
+            <listOfProducts>
+               <speciesReference species = "N" stoichiometry = "1"/>
+            </listOfProducts>
+            <kineticLaw>
+               <math xmlns = "http://www.w3.org/1998/Math/MathML">
+                  <apply>
+                     <minus/>
+                     <apply>
+                        <minus/>
+                        <apply>
+                           <minus/>
+                           <apply>
+                              <plus/>
+                              <ci>
+                                    AlphaN
+                              </ci>
+                              <apply>
+                                 <divide/>
+                                 <apply>
+                                    <times/>
+                                    <ci>
+                                          BetaN
+                                    </ci>
+                                    <apply>
+                                       <power/>
+                                       <apply>
+                                          <times/>
+                                          <ci>
+                                                Davg
+                                          </ci>
+                                          <ci>
+                                                N
+                                          </ci>
+                                       </apply>
+                                       <ci>
+                                             nn
+                                       </ci>
+                                    </apply>
+                                 </apply>
+                                 <apply>
+                                    <plus/>
+                                    <apply>
+                                       <power/>
+                                       <ci>
+                                             KSN
+                                       </ci>
+                                       <ci>
+                                             nn
+                                       </ci>
+                                    </apply>
+                                    <apply>
+                                       <power/>
+                                       <apply>
+                                          <times/>
+                                          <ci>
+                                                Davg
+                                          </ci>
+                                          <ci>
+                                                N
+                                          </ci>
+                                       </apply>
+                                       <ci>
+                                             nn
+                                       </ci>
+                                    </apply>
+                                 </apply>
+                              </apply>
+                           </apply>
+                           <apply>
+                              <times/>
+                              <ci>
+                                    Gamma
+                              </ci>
+                              <ci>
+                                    N
+                              </ci>
+                           </apply>
+                        </apply>
+                        <apply>
+                           <divide/>
+                           <apply>
+                              <times/>
+                              <ci>
+                                    N
+                              </ci>
+                              <ci>
+                                    D
+                              </ci>
+                           </apply>
+                           <ci>
+                                 kc
+                           </ci>
+                        </apply>
+                     </apply>
+                     <apply>
+                        <divide/>
+                        <apply>
+                           <times/>
+                           <ci>
+                                 Davg
+                           </ci>
+                           <ci>
+                                 N
+                           </ci>
+                        </apply>
+                        <ci>
+                              kt
+                        </ci>
+                     </apply>
+                  </apply>
+               </math>
+            </kineticLaw>
+         </reaction>
+         <reaction id = "_J2" reversible = "false">
+            <listOfReactants>
+               <speciesReference species = "X" stoichiometry = "1"/>
+            </listOfReactants>
+            <listOfProducts>
+               <speciesReference species = "D" stoichiometry = "1"/>
+            </listOfProducts>
+            <kineticLaw>
+               <math xmlns = "http://www.w3.org/1998/Math/MathML">
+                  <apply>
+                     <minus/>
+                     <apply>
+                        <minus/>
+                        <apply>
+                           <minus/>
+                           <apply>
+                              <plus/>
+                              <ci>
+                                    AlphaD
+                              </ci>
+                              <apply>
+                                 <divide/>
+                                 <apply>
+                                    <times/>
+                                    <ci>
+                                          BetaD
+                                    </ci>
+                                    <apply>
+                                       <power/>
+                                       <ci>
+                                             B
+                                       </ci>
+                                       <ci>
+                                             m
+                                       </ci>
+                                    </apply>
+                                 </apply>
+                                 <apply>
+                                    <plus/>
+                                    <apply>
+                                       <power/>
+                                       <ci>
+                                             KDB
+                                       </ci>
+                                       <ci>
+                                             m
+                                       </ci>
+                                    </apply>
+                                    <apply>
+                                       <power/>
+                                       <ci>
+                                             B
+                                       </ci>
+                                       <ci>
+                                             m
+                                       </ci>
+                                    </apply>
+                                 </apply>
+                              </apply>
+                           </apply>
+                           <apply>
+                              <times/>
+                              <ci>
+                                    Gamma
+                              </ci>
+                              <ci>
+                                    D
+                              </ci>
+                           </apply>
+                        </apply>
+                        <apply>
+                           <divide/>
+                           <apply>
+                              <times/>
+                              <ci>
+                                    N
+                              </ci>
+                              <ci>
+                                    D
+                              </ci>
+                           </apply>
+                           <ci>
+                                 kc
+                           </ci>
+                        </apply>
+                     </apply>
+                     <apply>
+                        <divide/>
+                        <apply>
+                           <times/>
+                           <ci>
+                                 Navg
+                           </ci>
+                           <ci>
+                                 D
+                           </ci>
+                        </apply>
+                        <ci>
+                              kt
+                        </ci>
+                     </apply>
+                  </apply>
+               </math>
+            </kineticLaw>
+         </reaction>
+         <reaction id = "_J3" reversible = "false">
+            <listOfReactants>
+               <speciesReference species = "X" stoichiometry = "1"/>
+            </listOfReactants>
+            <listOfProducts>
+               <speciesReference species = "B" stoichiometry = "1"/>
+            </listOfProducts>
+            <kineticLaw>
+               <math xmlns = "http://www.w3.org/1998/Math/MathML">
+                  <apply>
+                     <minus/>
+                     <ci>
+                           BetaB
+                     </ci>
+                     <apply>
+                        <divide/>
+                        <apply>
+                           <times/>
+                           <ci>
+                                 Gamma
+                           </ci>
+                           <ci>
+                                 B
+                           </ci>
+                        </apply>
+                        <apply>
+                           <plus/>
+                           <ci>
+                                 KBW
+                           </ci>
+                           <ci>
+                                 WNT
+                           </ci>
+                        </apply>
+                     </apply>
+                  </apply>
+               </math>
+            </kineticLaw>
+         </reaction>
+         <reaction id = "_J4" reversible = "false">
+            <listOfReactants>
+               <speciesReference species = "X" stoichiometry = "1"/>
+            </listOfReactants>
+            <listOfProducts>
+               <speciesReference species = "R" stoichiometry = "1"/>
+            </listOfProducts>
+            <kineticLaw>
+               <math xmlns = "http://www.w3.org/1998/Math/MathML">
+                  <apply>
+                     <minus/>
+                     <apply>
+                        <divide/>
+                        <apply>
+                           <power/>
+                           <apply>
+                              <times/>
+                              <ci>
+                                    Davg
+                              </ci>
+                              <ci>
+                                    N
+                              </ci>
+                           </apply>
+                           <ci>
+                                 nn
+                           </ci>
+                        </apply>
+                        <apply>
+                           <plus/>
+                           <apply>
+                              <power/>
+                              <ci>
+                                    KSN
+                              </ci>
+                              <ci>
+                                    nn
+                              </ci>
+                           </apply>
+                           <apply>
+                              <power/>
+                              <apply>
+                                 <times/>
+                                 <ci>
+                                       Davg
+                                 </ci>
+                                 <ci>
+                                       N
+                                 </ci>
+                              </apply>
+                              <ci>
+                                    nn
+                              </ci>
+                           </apply>
+                        </apply>
+                     </apply>
+                     <apply>
+                        <times/>
+                        <ci>
+                              Gamma
+                        </ci>
+                        <ci>
+                              R
+                        </ci>
+                     </apply>
+                  </apply>
+               </math>
+            </kineticLaw>
+         </reaction>
+      </listOfReactions>
+   </model>
+</sbml>
