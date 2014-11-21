@@ -9,10 +9,6 @@ def configureSimulation(sim):
    import CompuCellSetup
    from XMLUtils import ElementCC3D
    cc3d=ElementCC3D("CompuCell3D")
-#  For parallel processing
-#    md=cc3d.ElementCC3D("Metadata")
-#    md.ElementCC3D("VirtualProcessingUnits",{"ThreadsPerVPU":2},2)
-#    md.ElementCC3D("DebugOutputFrequency",{},0)
    
    potts=cc3d.ElementCC3D("Potts")
    potts.ElementCC3D("Dimensions",{"x":70,"y":150,"z":70})
@@ -20,7 +16,6 @@ def configureSimulation(sim):
    potts.ElementCC3D("Temperature",{},30)
    potts.ElementCC3D("NeighborOrder",{},3)
    potts.ElementCC3D("Boundary_x",{},"Periodic")
-#    potts.ElementCC3D("Boundary_y",{},"Periodic")
    
    cellType=cc3d.ElementCC3D("Plugin",{"Name":"CellType"})
    cellType.ElementCC3D("CellType", {"TypeName":"Medium","TypeId":"0"})
@@ -79,7 +74,14 @@ steppableRegistry.registerSteppable(mitosisSteppable)
 
 #Create extra player fields here or add attributes
 from DeltaNotchSteppables import ExtraFields
-extraFields=ExtraFields(_simulator=sim,_frequency=5)
+extraFields=ExtraFields(_simulator=sim,_frequency=1)
 steppableRegistry.registerSteppable(extraFields)
 
+from DeltaNotchSteppables import Plotting1
+Plotting1=Plotting1(_simulator=sim,_frequency=1)
+steppableRegistry.registerSteppable(Plotting1)
+
+from DeltaNotchSteppables import Plotting2
+Plotting2=Plotting2(_simulator=sim,_frequency=1)
+steppableRegistry.registerSteppable(Plotting2)
 CompuCellSetup.mainLoop(sim,simthread,steppableRegistry)
