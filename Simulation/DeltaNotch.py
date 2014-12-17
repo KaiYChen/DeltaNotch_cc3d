@@ -15,39 +15,22 @@ def configureSimulation(sim):
    potts.ElementCC3D("Steps",{},10000)
    potts.ElementCC3D("Temperature",{},15)#original 30   
    potts.ElementCC3D("NeighborOrder",{},3)
-#   potts.ElementCC3D("Boundary_x",{},"Periodic")
-#   potts.ElementCC3D("Boundary_y",{},"Periodic")
+
    cellType=cc3d.ElementCC3D("Plugin",{"Name":"CellType"})
    cellType.ElementCC3D("CellType", {"TypeName":"Medium","TypeId":"0"})
    cellType.ElementCC3D("CellType", {"TypeName":"TypeA" ,"TypeId":"1"}) # Epithelial cells
    cellType.ElementCC3D("CellType", {"TypeName":"BM" ,"TypeId":"2"})    # Meschymal cells
-   cellType.ElementCC3D("CellType", {"TypeName":"Apical" ,"TypeId":"3"})# Apical layer
-   cellType.ElementCC3D("CellType", {"TypeName":"Basal" ,"TypeId":"4"}) # Basal layer
+
 # assign Energe
    contact=cc3d.ElementCC3D("Plugin",{"Name":"Contact"})
    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Medium"},0)
-   contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"TypeA"},5)
+   contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"TypeA"},8)
    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"BM"},10)
-   contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Apical"},2)
-   contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Basal"},10)
    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"TypeA"},2)
-   contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"BM"},10)
-   contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Apical"},5)
-   contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},5)
+   contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"BM"},1)
    contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"BM"},0)
-   contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"Apical"},10)
-   contact.ElementCC3D("Energy", {"Type1":"BM",  "Type2":"Basal"},2)
-   contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Apical"},8)
-   contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},10)
-   contact.ElementCC3D("Energy", {"Type1":"Basal",  "Type2":"Basal"},8)
    contact.ElementCC3D("NeighborOrder",{},5)
-# Contact Internal energy
-   contactIn=cc3d.ElementCC3D("Plugin",{"Name":"ContactInternal"})
-   contactIn.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Apical"},0)
-   contactIn.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},0)
-   contactIn.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},5)   
-   contactIn.ElementCC3D("NeighborOrder",{},5)  
-#
+
    volume = cc3d.ElementCC3D("Plugin",{"Name":"VolumeLocalFlex"})
    ntp = cc3d.ElementCC3D("Plugin",{"Name":"NeighborTracker"})
    epb = cc3d.ElementCC3D("Plugin",{"Name":"ExternalPotential"})
