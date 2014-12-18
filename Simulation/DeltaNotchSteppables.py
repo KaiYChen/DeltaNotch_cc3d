@@ -9,7 +9,7 @@ from PlayerPython import *
 from math import *
 from PySteppablesExamples import MitosisSteppableBase
 
-tVol = 800
+tVol = 500
 # Calcuate Cell Death due to Threshold and BM touching
 NoOfDeathBM = 0
 NoOfDeathThre = 0
@@ -130,7 +130,43 @@ class InitialCondition(MitosisSteppableBase):
             # The next line araises the dead cell register      
             self.cleanDeadCells()
 
-
+        self.BreakCells()# call new BreakCells() to generate apical and basal cells from Epi cells
+        
+    def BreakCells(self):
+        # iterating over cells of type 1        
+        for cell in self.cellListByType(1): # list of  cell types (capitalized)
+            # you can access/manipulate cell properties here
+            # print "id=",cell.id," type=",cell.type
+            Apical=self.potts.createCell()
+            Basal=self.potts.createCell()
+            Apical.type=3
+            Basal.type=4
+            # Make sure PixelTracker plugin is loaded
+            pixelList=self.getCellPixelList(cell)
+            for PTD in pixelList:
+                #print "pixel of cell id=",cell.id," type:",cell.type, " = ",PTD.pixel," number of pixels=",pixelList.numberOfPixels()
+                R = random.randint(1,4)
+                if R == 4:
+                    x = PTD.pixel.x
+                    y = PTD.pixel.y
+                    z = PTD.pixel.z
+                    self.cellField[x:x,y:y,z:z]=Basal
+                elif R== 3:
+                    x = PTD.pixel.x
+                    y = PTD.pixel.y
+                    z = PTD.pixel.z
+                    self.cellField[x:x,y:y,z:z]=Apical
+            # assign targetVolume        
+            Apical.targetVolume = cell.targetVolume/6
+            Basal.targetVolume = cell.targetVolume/6
+            cell.targetVolume = cell.targetVolume*2/3
+            Apical.lambdaVolume = cell.lambdaVolume
+            Basal.lambdaVolume = cell.lambdaVolume
+            
+            # assign Cell cluster
+            reassignIdFlag=self.inventory.reassignClusterId(Apical,cell.clusterId) # changing cluster id to 1536 for cell 'cell'
+            reassignIdFlag=self.inventory.reassignClusterId(Basal,cell.clusterId) # changing cluster id to 1536 for cell 'cell'
+            
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
@@ -145,7 +181,7 @@ class Growth(MitosisSteppableBase):
         for cell in self.cellListByType(1):
             # Assign stochastic initial conditions for stem cell/TA cell volume
             if cell.yCOM < self.dim.y*0.7:
-                cell.targetVolume = tVol*random.uniform(0.5,1.8)# Make the initial target Volume of diff cells constant       
+                cell.targetVolume = tVol*random.uniform(0.5,1.5)# Make the initial target Volume of diff cells constant       
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
@@ -165,12 +201,12 @@ class Growth(MitosisSteppableBase):
                         # access/modification of a dictionary attached to cell - make sure to decalare in main script that you will use such attribute
                         cellDict=self.getDictionaryAttribute(cell)
 #                         if cellDict["G"] == True:
-                        cell.targetVolume+= 1*random.uniform(0.2,1.8)#random growth rate
+                        cell.targetVolume+= 1
 #                         else:
 #                             cell.targetVolume = 1000    
                     # The diff cells remain unchanged    
                     else:
-                        cell.targetVolume = tVol*1.25
+                        cell.targetVolume = tVol
 # Seperate cell death from cell growth 
                 # Program Cell Death
                 # Set up threshold to kill cells when cells go above the threshold
@@ -178,17 +214,21 @@ class Growth(MitosisSteppableBase):
                     cells_to_die.append(cell)
                     NoOfDeathThre+=1
                     print "       ~~~~~~~~~~~~~~~~~~Dieing cell Thre~~~~~~~~~~~~~~~",cell.id,cell.type,cell.volume,cell.targetVolume
-                
                 cellNeighborList=self.getCellNeighbors(cell) # generates list of neighbors of cell 'cell'
                 wallflag=0
+                
                 # Kill cells when the cells not touching BM
-                for neighbor in cellNeighborList:
-                    # neighborSurfaceData.neighborAddress is a pointer to one of 'cell' neighbors stired in cellNeighborList
-                    #IMPORTANT: cell may have Medium (NULL pointer) as a neighbor. therefore before accessing neighbor we first check if it is no Medium
-                    if neighbor.neighborAddress: 
-                        # Detect the cells touching BM
-                        if neighbor.neighborAddress.type == 2:
-                            wallflag=1
+                compartmentList=self.inventory.getClusterCells(cell.clusterId)
+                for cell2 in compartmentList:
+                    cellNeighborList=self.getCellNeighbors(cell2) # generates list of neighbors of cell 'cell'
+                    for neighbor in cellNeighborList:
+                        # neighborSurfaceData.neighborAddress is a pointer to one of 'cell' neighbors stired in cellNeighborList
+                        #IMPORTANT: cell may have Medium (NULL pointer) as a neighbor. therefore before accessing neighbor we first check if it is no Medium
+                        if neighbor.neighborAddress: 
+                            # Detect the cells touching BM
+                            #print "       ~~~~~~~~~~~~~~~~~~NeighborCellType~~~~~~~~~~~~~~~",neighbor.neighborAddress.type
+                            if neighbor.neighborAddress.type == 2:
+                                wallflag=1
                 if wallflag==0:
                     # Delete the cells without contacting BM
                     cells_to_die.append(cell)
@@ -197,8 +237,10 @@ class Growth(MitosisSteppableBase):
                         print "       ~~~~~~~~~~~~~~~~~~Dieing cell BM~~~~~~~~~~~~~~~",cell.id,cell.type,cell.volume,cell.targetVolume
         # Cell Killing program
         for cell in cells_to_die:    
-            cell.targetVolume = 0
-            self.deleteCell(cell)
+            compartmentList=self.inventory.getClusterCells(cell.clusterId)
+            for cell2 in compartmentList:
+                cell2.targetVolume = 0
+                self.deleteCell(cell2)
             # The next line araises the dead cell register      
             self.cleanDeadCells()
 #############################
@@ -256,14 +298,12 @@ class MitosisSteppable(MitosisSteppableBase):
         cells_to_divide=[]
         for cell in self.cellListByType(1):
             cellDict=self.getDictionaryAttribute(cell)
-            if mcs>10 and cell.yCOM<self.dim.y*0.5 and cell.volume > tVol*1.75*random.uniform(0.75,1.25):
-                randDiv = random.randint(1,4)# apply randoness to avoid synchronized division
-                if randDiv >3:
-                    print "~~~~~~~~~~~~~~~~cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
-                    cells_to_divide.append(cell)
-                    NoOfDivCells+=1
+            if mcs>10 and cell.yCOM<self.dim.y*0.5 and cell.volume > tVol*1.5:
+                print "~~~~~~~~~~~~~~~~cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
+                cells_to_divide.append(cell)
+                NoOfDivCells+=1
         for cell in cells_to_divide:
-            self.divideCellAlongMinorAxis(cell)
+            self.divideCellAlongMajorAxis(cell)
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
