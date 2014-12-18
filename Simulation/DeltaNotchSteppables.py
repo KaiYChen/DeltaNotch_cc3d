@@ -263,7 +263,7 @@ class MitosisSteppable(MitosisSteppableBase):
                     cells_to_divide.append(cell)
                     NoOfDivCells+=1
         for cell in cells_to_divide:
-            self.divideCellAlongMajorAxis(cell)
+            self.divideCellAlongMinorAxis(cell)
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
