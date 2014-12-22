@@ -9,7 +9,7 @@ from PlayerPython import *
 from math import *
 from PySteppablesExamples import MitosisSteppableBase
 
-tVol = 500
+tVol = 800
 # Calcuate Cell Death due to Threshold and BM touching
 NoOfDeathBM = 0
 NoOfDeathThre = 0
@@ -20,11 +20,9 @@ class InitialCondition(MitosisSteppableBase):
         radi = self.dim.x/2
         # Assign Property for Cell ID = 1
         cells_to_die=[]
-        
         for cell in self.cellListByType(1):
-            cell.targetVolume = 1000
+            cell.targetVolume = tVol
             cell.lambdaVolume = 5
-    
         # Basal Membrane Generation
         radi = int(self.dim.x/2)
         pt=CompuCell.Point3D(0,0,0)
@@ -39,7 +37,6 @@ class InitialCondition(MitosisSteppableBase):
                     pt.y=pty
                     pt.x=ptx
                     pt.z=ptz        
-                    
                     # Generate Tube structure
                     if pty>= radi:
                         if ((ptx-radi)**2+(ptz-radi)**2)<=radi**2 and ((ptx-radi)**2+(ptz-radi)**2)>=(radi-5)**2:
@@ -251,7 +248,7 @@ class DeltaNotchClass(SteppableBasePy):
         # adding options that setup SBML solver integrator - these are optional but useful when encounteting integration instabilities              
         Name = "DeltaNotch"
         Key  = "DN"
-        modelFile='Simulation/DN_Collier.sbml' 
+        modelFile='Simulation/DN_Collier_1.sbml' 
         options={'relative':1e-10,'absolute':1e-12,'steps':10}
         self.setSBMLGlobalOptions(options)
         self.addSBMLToCellTypes(_modelFile=modelFile,_modelName="DN",_types=[self.TYPEA],_stepSize=0.2)  
@@ -260,14 +257,14 @@ class DeltaNotchClass(SteppableBasePy):
         for cell in self.cellListByType(1):
             state['D'] = random.uniform(0.2,1.0)
             state['N'] = random.uniform(0.2,1.0)
-#             state['B'] = random.uniform(0.9,1.0)
-#             state['R'] = random.uniform(0.9,1.0)
+            state['B'] = random.uniform(0.9,1.0)
+            state['R'] = random.uniform(0.9,1.0)
             self.setSBMLState(_modelName=Key,_cell=cell,_state=state)
             cellDict=self.getDictionaryAttribute(cell)
             cellDict['D']=state['D']
             cellDict['N']=state['N']
-#             cellDict['B']=state['B']
-#             cellDict['R']=state['R']
+            cellDict['B']=state['B']
+            cellDict['R']=state['R']
     def step(self,mcs):
         for cell in self.cellListByType(1):
             Davg=0.0; nn=0        
@@ -278,15 +275,29 @@ class DeltaNotchClass(SteppableBasePy):
                     Davg+=state['D']   
             if (nn>0):
                 Davg=Davg/nn
-            state={}  
+            
+            state={}
+            yCOM=(cell.yCOM/self.dim.y)
+            
+            if (cell.yCOM<self.dim.y*0.5):
+                GammaB = 1
+            else:
+                GammaB = 10
             state['Davg']=Davg
-            #print "~~~~~~~~~~~~~~~~~~~~~~~~~~~Davg:%f~~~~~~~~~~~~" %Davg       
+            state['GammaB']=GammaB
+            #print "~~~~~~~~~~~~~~~~~~~~~~~~~~~Davg:%f~~~~~~~~~~~~" %Davg
+            #print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~~~~~GammaB:%f~~~~~~~~~~~~" %(cell.id,GammaB)       
             self.setSBMLState(_modelName='DN',_cell=cell,_state=state)
             state=self.getSBMLState(_modelName='DN',_cell=cell)
+            testB=self.getSBMLValue(_modelName='DN',_valueName='GammaB',_cell=cell)
+            #print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~~~~~TESTB:%f~~~~~~~~~~~~" %(cell.id,testB)                   
             cellDict=self.getDictionaryAttribute(cell)
             cellDict['D']=state['D']
-            cellDict['N']=state['N']   
-            #print "~~~~~~~~~~~~~~~~~~~~~~~~~~~D:%f~~~~~~~~~~~~" %cellDict['D']
+            cellDict['N']=state['N']  
+            cellDict['B']=state['B']
+            cellDict['R']=state['R']
+            
+            print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~N:%f,\tD:%f,\tB:%f~~~~~~~~~~~~\n" %(cell.id,state['N'],state['D'],state['B'])
         self.timestepSBML()
 #############################
 class MitosisSteppable(MitosisSteppableBase):
@@ -296,14 +307,21 @@ class MitosisSteppable(MitosisSteppableBase):
         global NoOfDivCells
         NoOfDivCells = 0
         cells_to_divide=[]
+        
         for cell in self.cellListByType(1):
             cellDict=self.getDictionaryAttribute(cell)
             if mcs>10 and cell.yCOM<self.dim.y*0.5 and cell.volume > tVol*1.5:
                 print "~~~~~~~~~~~~~~~~cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
                 cells_to_divide.append(cell)
                 NoOfDivCells+=1
+                
         for cell in cells_to_divide:
+            # break links between apical and basal before cell division
+            for fpp in self.getInternalFocalPointPlasticityDataList(cell):
+                cell2=fpp.neighborAddress
+                self.focalPointPlasticityPlugin.deleteInternalFocalPointPlasticityLink(cell,cell2)
             self.divideCellAlongMajorAxis(cell)
+            
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
@@ -317,27 +335,27 @@ class MitosisSteppable(MitosisSteppableBase):
         parentCellDict=CompuCell.getPyAttrib(parentCell)
         childCellDict["D"]=random.uniform(0.9,1.0)*parentCellDict["D"]
         childCellDict["N"]=random.uniform(0.9,1.0)*parentCellDict["N"]
-#         childCellDict["B"]=random.uniform(0.9,1.0)*parentCellDict["B"]
-#         childCellDict["R"]=random.uniform(0.9,1.0)*parentCellDict["R"]
+        childCellDict["B"]=random.uniform(0.9,1.0)*parentCellDict["B"]
+        childCellDict["R"]=random.uniform(0.9,1.0)*parentCellDict["R"]
 #############################
 class ExtraFields(SteppableBasePy):
     def __init__(self,_simulator,_frequency=1):
         SteppableBasePy.__init__(self,_simulator,_frequency)
         self.scalarFieldD=CompuCellSetup.createScalarFieldCellLevelPy("Delta")
         self.scalarFieldN=CompuCellSetup.createScalarFieldCellLevelPy("Notch")
-#         self.scalarFieldB=CompuCellSetup.createScalarFieldCellLevelPy("B-cat")
-#         self.scalarFieldR=CompuCellSetup.createScalarFieldCellLevelPy("NICD")   
+        self.scalarFieldB=CompuCellSetup.createScalarFieldCellLevelPy("B-cat")
+        self.scalarFieldR=CompuCellSetup.createScalarFieldCellLevelPy("NICD")   
     def step(self,mcs):     
         self.scalarFieldD.clear()
         self.scalarFieldN.clear()
-#         self.scalarFieldB.clear()
-#         self.scalarFieldR.clear()
+        self.scalarFieldB.clear()
+        self.scalarFieldR.clear()
         for cell in self.cellListByType(1):
             cellDict=CompuCell.getPyAttrib(cell)
             self.scalarFieldD[cell]=cellDict['D']
             self.scalarFieldN[cell]=cellDict['N']
-#             self.scalarFieldB[cell]=cellDict['B']
-#             self.scalarFieldR[cell]=cellDict['R']    
+            self.scalarFieldB[cell]=cellDict['B']
+            self.scalarFieldR[cell]=cellDict['R']    
 #############################
 class Plotting1(SteppableBasePy):
     def __init__(self,_simulator,_frequency=1):

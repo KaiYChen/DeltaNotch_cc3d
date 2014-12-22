@@ -15,8 +15,7 @@ def configureSimulation(sim):
     potts.ElementCC3D("Steps",{},2000)
     potts.ElementCC3D("Temperature",{},15)#original 30   
     potts.ElementCC3D("NeighborOrder",{},3)
-    #   potts.ElementCC3D("Boundary_x",{},"Periodic")
-    #   potts.ElementCC3D("Boundary_y",{},"Periodic")
+
     cellType=cc3d.ElementCC3D("Plugin",{"Name":"CellType"})
     cellType.ElementCC3D("CellType", {"TypeName":"Medium","TypeId":"0"})
     cellType.ElementCC3D("CellType", {"TypeName":"TypeA" ,"TypeId":"1"}) # Epithelial cells
@@ -36,7 +35,7 @@ def configureSimulation(sim):
     contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},5)
     contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"BM"},0)
     contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"Apical"},10)
-    contact.ElementCC3D("Energy", {"Type1":"BM",  "Type2":"Basal"},1)
+    contact.ElementCC3D("Energy", {"Type1":"BM",  "Type2":"Basal"},2)
     contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Apical"},5)
     contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},10)
     contact.ElementCC3D("Energy", {"Type1":"Basal",  "Type2":"Basal"},5)
@@ -50,10 +49,10 @@ def configureSimulation(sim):
     # adding elastic constraint
     FocalPointPlasticity =cc3d.ElementCC3D("Plugin",{"Name":"FocalPointPlasticity"})
     ParametersIn=FocalPointPlasticity.ElementCC3D("InternalParameters",{"Type1":"Apical","Type2":"Basal"}) #MAKE SURE THE NAME TYPES ARE CORRECT
-    ParametersIn.ElementCC3D("Lambda",{},100) #YOU NEED TO ADJUST THIS VALUE LATER
+    ParametersIn.ElementCC3D("Lambda",{},500) #YOU NEED TO ADJUST THIS VALUE LATER
     ParametersIn.ElementCC3D("ActivationEnergy",{},-50)
-    ParametersIn.ElementCC3D("TargetDistance",{},3) #WRITE HERE THE TYPICAL DIAMETER OF THE CELL - from the video it seems to be ~8
-    ParametersIn.ElementCC3D("MaxDistance",{},6) #TYPE THE DOUBLE OF WHAT YOU WROTE ON THE PREVIOUS LINE
+    ParametersIn.ElementCC3D("TargetDistance",{},8) #WRITE HERE THE TYPICAL DIAMETER OF THE CELL - from the video it seems to be ~8
+    ParametersIn.ElementCC3D("MaxDistance",{},16) #TYPE THE DOUBLE OF WHAT YOU WROTE ON THE PREVIOUS LINE
     ParametersIn.ElementCC3D("MaxNumberOfJunctions",{"NeighborOrder":1},1)
     FocalPointPlasticity.ElementCC3D("NeighborOrder",{},1)
     #

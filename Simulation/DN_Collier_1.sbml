@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version4" level="2" version="4">
+  <model id="cell" name="cell">
+    <listOfCompartments>
+      <compartment id="compartment" size="1"/>
+    </listOfCompartments>
+    <listOfSpecies>
+      <species id="Davg" compartment="compartment" initialConcentration="0.4" boundaryCondition="true"/>
+      <species id="X" compartment="compartment" initialConcentration="0" boundaryCondition="true"/>
+      <species id="Navg" compartment="compartment" initialConcentration="0.4" boundaryCondition="true"/>
+      <species id="D" compartment="compartment" initialConcentration="0.5" boundaryCondition="false"/>
+      <species id="N" compartment="compartment" initialConcentration="0.5" boundaryCondition="false"/>
+      <species id="B" compartment="compartment" initialConcentration="0" boundaryCondition="false"/>
+      <species id="R" compartment="compartment" initialConcentration="0" boundaryCondition="false"/>
+    </listOfSpecies>
+    <listOfParameters>
+      <parameter id="BN0" value="0" constant="true"/>
+      <parameter id="BN" value="1" constant="true"/>
+      <parameter id="p" value="3" constant="true"/>
+      <parameter id="KN" value="0.1" constant="true"/>
+      <parameter id="AN" value="1" constant="true"/>
+      <parameter id="Kc" value="1" constant="true"/>
+      <parameter id="Kt" value="1" constant="true"/>
+      <parameter id="BD0" value="0" constant="true"/>
+      <parameter id="BD" value="1" constant="true"/>
+      <parameter id="KD" value="0.01" constant="true"/>
+      <parameter id="h" value="3" constant="true"/>
+      <parameter id="AD" value="1" constant="true"/>
+      <parameter id="BetaB" value="1" constant="true"/>
+      <parameter id="GammaB" value="1" constant="true"/>
+      <parameter id="AR" value="1" constant="true"/>
+    </listOfParameters>
+    <listOfReactions>
+      <reaction id="_J0" reversible="false">
+        <listOfReactants>
+          <speciesReference species="X" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="N" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="Davg"/>
+          <modifierSpeciesReference species="Davg"/>
+          <modifierSpeciesReference species="D"/>
+          <modifierSpeciesReference species="D"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> BN0 </ci>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <times/>
+                        <ci> BN </ci>
+                        <apply>
+                          <power/>
+                          <apply>
+                            <times/>
+                            <ci> Davg </ci>
+                            <ci> N </ci>
+                          </apply>
+                          <ci> p </ci>
+                        </apply>
+                      </apply>
+                      <apply>
+                        <plus/>
+                        <apply>
+                          <power/>
+                          <ci> KN </ci>
+                          <ci> p </ci>
+                        </apply>
+                        <apply>
+                          <power/>
+                          <apply>
+                            <times/>
+                            <ci> Davg </ci>
+                            <ci> N </ci>
+                          </apply>
+                          <ci> p </ci>
+                        </apply>
+                      </apply>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> AN </ci>
+                    <ci> N </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> Kc </ci>
+                  <ci> D </ci>
+                  <ci> N </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> Kt </ci>
+                <ci> N </ci>
+                <ci> D </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="_J1" reversible="false">
+        <listOfReactants>
+          <speciesReference species="X" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="D" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="B"/>
+          <modifierSpeciesReference species="B"/>
+          <modifierSpeciesReference species="Davg"/>
+          <modifierSpeciesReference species="Davg"/>
+          <modifierSpeciesReference species="N"/>
+          <modifierSpeciesReference species="N"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <minus/>
+              <apply>
+                <minus/>
+                <apply>
+                  <minus/>
+                  <apply>
+                    <plus/>
+                    <ci> BD0 </ci>
+                    <apply>
+                      <divide/>
+                      <apply>
+                        <times/>
+                        <ci> BD </ci>
+                        <ci> B </ci>
+                        <apply>
+                          <power/>
+                          <ci> KD </ci>
+                          <ci> h </ci>
+                        </apply>
+                      </apply>
+                      <apply>
+                        <plus/>
+                        <apply>
+                          <power/>
+                          <ci> KD </ci>
+                          <ci> h </ci>
+                        </apply>
+                        <apply>
+                          <power/>
+                          <apply>
+                            <times/>
+                            <ci> Davg </ci>
+                            <ci> N </ci>
+                          </apply>
+                          <ci> h </ci>
+                        </apply>
+                      </apply>
+                    </apply>
+                  </apply>
+                  <apply>
+                    <times/>
+                    <ci> AD </ci>
+                    <ci> D </ci>
+                  </apply>
+                </apply>
+                <apply>
+                  <times/>
+                  <ci> Kc </ci>
+                  <ci> D </ci>
+                  <ci> N </ci>
+                </apply>
+              </apply>
+              <apply>
+                <times/>
+                <ci> Kt </ci>
+                <ci> N </ci>
+                <ci> D </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="_J2" reversible="false">
+        <listOfReactants>
+          <speciesReference species="X" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="B" stoichiometry="1"/>
+        </listOfProducts>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <minus/>
+              <ci> BetaB </ci>
+              <apply>
+                <times/>
+                <ci> GammaB </ci>
+                <ci> B </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+      <reaction id="_J3" reversible="false">
+        <listOfReactants>
+          <speciesReference species="X" stoichiometry="1"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="R" stoichiometry="1"/>
+        </listOfProducts>
+        <listOfModifiers>
+          <modifierSpeciesReference species="Davg"/>
+          <modifierSpeciesReference species="Davg"/>
+          <modifierSpeciesReference species="N"/>
+          <modifierSpeciesReference species="N"/>
+        </listOfModifiers>
+        <kineticLaw>
+          <math xmlns="http://www.w3.org/1998/Math/MathML">
+            <apply>
+              <minus/>
+              <apply>
+                <times/>
+                <ci> Kt </ci>
+                <ci> Davg </ci>
+                <ci> N </ci>
+              </apply>
+              <apply>
+                <times/>
+                <ci> AR </ci>
+                <ci> R </ci>
+              </apply>
+            </apply>
+          </math>
+        </kineticLaw>
+      </reaction>
+    </listOfReactions>
+  </model>
+</sbml>
