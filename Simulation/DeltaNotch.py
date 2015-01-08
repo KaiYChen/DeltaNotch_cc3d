@@ -25,31 +25,31 @@ def configureSimulation(sim):
     # assign Energe
     contact=cc3d.ElementCC3D("Plugin",{"Name":"Contact"})
     contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Medium"},0)
-    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"TypeA"},8)
+    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"TypeA"},5)
     contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"BM"},10)
-    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Apical"},1)
+    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Apical"},2)
     contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Basal"},10)
-    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"TypeA"},3)
-    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"BM"},5)
-    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Apical"},3)
-    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},3)
+    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"TypeA"},2)
+    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"BM"},10)
+    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Apical"},5)
+    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},5)
     contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"BM"},0)
     contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"Apical"},10)
     contact.ElementCC3D("Energy", {"Type1":"BM",  "Type2":"Basal"},1)
-    contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Apical"},3)
+    contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Apical"},5)
     contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},10)
-    contact.ElementCC3D("Energy", {"Type1":"Basal",  "Type2":"Basal"},3)
-    contact.ElementCC3D("NeighborOrder",{},3)
+    contact.ElementCC3D("Energy", {"Type1":"Basal",  "Type2":"Basal"},5)
+    contact.ElementCC3D("NeighborOrder",{},5)
     # Contact Internal energy
     contactIn=cc3d.ElementCC3D("Plugin",{"Name":"ContactInternal"})
     contactIn.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Apical"},0)
     contactIn.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},0)
-    contactIn.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},10)   
-    contactIn.ElementCC3D("NeighborOrder",{},3)
+    contactIn.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},5)   
+    contactIn.ElementCC3D("NeighborOrder",{},5)
     # adding elastic constraint
     FocalPointPlasticity =cc3d.ElementCC3D("Plugin",{"Name":"FocalPointPlasticity"})
     ParametersIn=FocalPointPlasticity.ElementCC3D("InternalParameters",{"Type1":"Apical","Type2":"Basal"}) #MAKE SURE THE NAME TYPES ARE CORRECT
-    ParametersIn.ElementCC3D("Lambda",{},3000) #YOU NEED TO ADJUST THIS VALUE LATER
+    ParametersIn.ElementCC3D("Lambda",{},100) #YOU NEED TO ADJUST THIS VALUE LATER
     ParametersIn.ElementCC3D("ActivationEnergy",{},-50)
     ParametersIn.ElementCC3D("TargetDistance",{},3) #WRITE HERE THE TYPICAL DIAMETER OF THE CELL - from the video it seems to be ~8
     ParametersIn.ElementCC3D("MaxDistance",{},6) #TYPE THE DOUBLE OF WHAT YOU WROTE ON THE PREVIOUS LINE
