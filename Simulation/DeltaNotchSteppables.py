@@ -58,24 +58,18 @@ class InitialCondition(MitosisSteppableBase):
                  
                     elif pty < radi:
                         if ((ptx-radi)**2+(pty-radi)**2+(ptz-radi)**2)<=radi**2 and ((ptx-radi)**2+(pty-radi)**2+(ptz-radi)**2)>=(radi-5)**2:
-                            
-                            
                             self.cellField.set(pt,Wall)
                             self.cleanDeadCells()
-                            
                         elif ((ptx-radi)**2+(pty-radi)**2+(ptz-radi)**2)>radi**2:
-                            
                             overwrittenCell=self.cellField.get(pt)
                             if pt.x!=0 and pt.y!=0 and pt.z!=0: # this line is essential because you do not wan to remove wall cell which sits at (0,0,0)
                                 self.cellField.set(pt,CompuCell.getMediumCell())
                                 self.cleanDeadCells()
-                                
         # now we can overwrite (0,0,0) with medium
         pt.x=0
         pt.y=0
         pt.z=0
         self.cellField.set(pt,CompuCell.getMediumCell())
-        
         self.divideCellOrientationVectorBased(Wall,0,0,1)
         for divN in range(0,3):        
             cell_to_divide=[]    
@@ -92,13 +86,11 @@ class InitialCondition(MitosisSteppableBase):
             for cell in self.cellListByType(2):
                 cell_to_divide.append(cell)
             for cell in cell_to_divide:
-                self.divideCellOrientationVectorBased(cell,0,1,0) 
-                
+                self.divideCellOrientationVectorBased(cell,0,1,0)   
         # Assign property for Cell type = 2
         for cell in self.cellListByType(2): 
             cell.targetVolume = cell.volume
             cell.lambdaVolume = 10000000
-
         cells_to_die=[]
         for cell in self.cellList:
             if cell.type == 1:                    
@@ -176,9 +168,7 @@ class Growth(MitosisSteppableBase):
         # Assign Property for Cell ID = 1
         cells_to_die=[]
         for cell in self.cellListByType(1):
-            # Assign stochastic initial conditions for stem cell/TA cell volume
-            if cell.yCOM < self.dim.y*0.7:
-                cell.targetVolume = tVol*random.uniform(0.5,1.5)# Make the initial target Volume of diff cells constant       
+            cell.targetVolume = tVol*random.uniform(0.75,1.25)# Make the initial target Volume of diff cells constant       
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
@@ -193,17 +183,17 @@ class Growth(MitosisSteppableBase):
             if cell.type == 1:
                 # Assume Growth only happens at the bottom of crypt
                 if cell.targetVolume:
-                    if mcs >10 and cell.yCOM < self.dim.y*0.5:
+                    if mcs >50 and cell.yCOM < self.dim.y*0.5:
                     # Program Cell Growth
                         # access/modification of a dictionary attached to cell - make sure to decalare in main script that you will use such attribute
                         cellDict=self.getDictionaryAttribute(cell)
 #                         if cellDict["G"] == True:
-                        cell.targetVolume+= 1
+                        cell.targetVolume+= 1*random.uniform(0.5,1.25)
 #                         else:
 #                             cell.targetVolume = 1000    
                     # The diff cells remain unchanged    
-                    else:
-                        cell.targetVolume = tVol
+#                     else:
+#                         cell.targetVolume = tVol*random.uniform(1,1.25)
 # Seperate cell death from cell growth 
                 # Program Cell Death
                 # Set up threshold to kill cells when cells go above the threshold
@@ -267,7 +257,15 @@ class DeltaNotchClass(SteppableBasePy):
             cellDict['R']=state['R']
     def step(self,mcs):
         for cell in self.cellListByType(1):
-            Davg=0.0; nn=0        
+            Davg=0.0; nn=0
+            compartmentList=self.inventory.getClusterCells(cell.clusterId)
+            neighborList = []
+            for cell2 in compartmentList:
+                for neighbor , commonSurfaceArea in self.getCellNeighborDataList(cell2):                
+                    if neighbor:
+                        #print "neighbor.id",neighbor.id,"neighbor.type=",neighbor.type,"clusterId=",neighbor.clusterId
+                        neighborList.append(neighbor)
+            #print "~~~~~~~~~~neighbor List~~~~~",neighborList
             for neighbor , commonSurfaceArea in self.getCellNeighborDataList(cell):
                 if (neighbor and neighbor.type == 1):
                     nn+=1
@@ -279,7 +277,7 @@ class DeltaNotchClass(SteppableBasePy):
             state={}
             yCOM=(cell.yCOM/self.dim.y)
             
-            if (cell.yCOM<self.dim.y*0.5):
+            if (cell.yCOM<self.dim.y*0.3):
                 GammaB = 1
             else:
                 GammaB = 10
@@ -297,7 +295,7 @@ class DeltaNotchClass(SteppableBasePy):
             cellDict['B']=state['B']
             cellDict['R']=state['R']
             
-            print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~N:%f,\tD:%f,\tB:%f~~~~~~~~~~~~\n" %(cell.id,state['N'],state['D'],state['B'])
+            #print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~N:%f,\tD:%f,\tB:%f~~~~~~~~~~~~\n" %(cell.id,state['N'],state['D'],state['B'])
         self.timestepSBML()
 #############################
 class MitosisSteppable(MitosisSteppableBase):
@@ -310,8 +308,12 @@ class MitosisSteppable(MitosisSteppableBase):
         
         for cell in self.cellListByType(1):
             cellDict=self.getDictionaryAttribute(cell)
-            if mcs>10 and cell.yCOM<self.dim.y*0.5 and cell.volume > tVol*1.5:
-                print "~~~~~~~~~~~~~~~~cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
+            if mcs>50 and cell.yCOM<self.dim.y*0.3 and cell.volume > tVol*1.5 and cellDict['N']>0.5:
+                print "~~~~~~~~~~~~~~~~Stem cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
+                cells_to_divide.append(cell)
+                NoOfDivCells+=1
+            elif mcs>50 and cell.yCOM<self.dim.y*0.5 and cell.yCOM>self.dim.y*0.3 and cell.volume > tVol*1.75:   
+                print "~~~~~~~~~~~~~~~~TA cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
                 cells_to_divide.append(cell)
                 NoOfDivCells+=1
                 

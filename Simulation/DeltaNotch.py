@@ -12,7 +12,7 @@ def configureSimulation(sim):
 
     potts=cc3d.ElementCC3D("Potts")
     potts.ElementCC3D("Dimensions",{"x":70,"y":150,"z":70})
-    potts.ElementCC3D("Steps",{},2000)
+    potts.ElementCC3D("Steps",{},10000)
     potts.ElementCC3D("Temperature",{},15)#original 30   
     potts.ElementCC3D("NeighborOrder",{},3)
 
@@ -25,34 +25,34 @@ def configureSimulation(sim):
     # assign Energe
     contact=cc3d.ElementCC3D("Plugin",{"Name":"Contact"})
     contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Medium"},0)
-    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"TypeA"},5)
+    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"TypeA"},8)
     contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"BM"},10)
-    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Apical"},2)
+    contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Apical"},1)
     contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"Basal"},10)
-    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"TypeA"},2)
-    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"BM"},10)
-    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Apical"},5)
-    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},5)
+    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"TypeA"},3)
+    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"BM"},5)
+    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Apical"},3)
+    contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},3)
     contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"BM"},0)
     contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"Apical"},10)
-    contact.ElementCC3D("Energy", {"Type1":"BM",  "Type2":"Basal"},2)
-    contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Apical"},5)
+    contact.ElementCC3D("Energy", {"Type1":"BM",  "Type2":"Basal"},1)
+    contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Apical"},3)
     contact.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},10)
-    contact.ElementCC3D("Energy", {"Type1":"Basal",  "Type2":"Basal"},5)
-    contact.ElementCC3D("NeighborOrder",{},5)
+    contact.ElementCC3D("Energy", {"Type1":"Basal",  "Type2":"Basal"},3)
+    contact.ElementCC3D("NeighborOrder",{},3)
     # Contact Internal energy
     contactIn=cc3d.ElementCC3D("Plugin",{"Name":"ContactInternal"})
     contactIn.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Apical"},0)
     contactIn.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"Basal"},0)
-    contactIn.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},5)   
-    contactIn.ElementCC3D("NeighborOrder",{},5)
+    contactIn.ElementCC3D("Energy", {"Type1":"Apical", "Type2":"Basal"},10)   
+    contactIn.ElementCC3D("NeighborOrder",{},3)
     # adding elastic constraint
     FocalPointPlasticity =cc3d.ElementCC3D("Plugin",{"Name":"FocalPointPlasticity"})
     ParametersIn=FocalPointPlasticity.ElementCC3D("InternalParameters",{"Type1":"Apical","Type2":"Basal"}) #MAKE SURE THE NAME TYPES ARE CORRECT
-    ParametersIn.ElementCC3D("Lambda",{},500) #YOU NEED TO ADJUST THIS VALUE LATER
+    ParametersIn.ElementCC3D("Lambda",{},3000) #YOU NEED TO ADJUST THIS VALUE LATER
     ParametersIn.ElementCC3D("ActivationEnergy",{},-50)
-    ParametersIn.ElementCC3D("TargetDistance",{},8) #WRITE HERE THE TYPICAL DIAMETER OF THE CELL - from the video it seems to be ~8
-    ParametersIn.ElementCC3D("MaxDistance",{},16) #TYPE THE DOUBLE OF WHAT YOU WROTE ON THE PREVIOUS LINE
+    ParametersIn.ElementCC3D("TargetDistance",{},3) #WRITE HERE THE TYPICAL DIAMETER OF THE CELL - from the video it seems to be ~8
+    ParametersIn.ElementCC3D("MaxDistance",{},6) #TYPE THE DOUBLE OF WHAT YOU WROTE ON THE PREVIOUS LINE
     ParametersIn.ElementCC3D("MaxNumberOfJunctions",{"NeighborOrder":1},1)
     FocalPointPlasticity.ElementCC3D("NeighborOrder",{},1)
     #
@@ -68,7 +68,7 @@ def configureSimulation(sim):
     region.ElementCC3D("BoxMin",{"x":6,  "y":6,  "z":6})
     region.ElementCC3D("BoxMax",{"x":65,  "y":130,  "z":65})
     region.ElementCC3D("Types",{},"TypeA")
-    region.ElementCC3D("Width", {},10)
+    region.ElementCC3D("Width", {},12)
 
     CompuCellSetup.setSimulationXMLDescription(cc3d)
 
