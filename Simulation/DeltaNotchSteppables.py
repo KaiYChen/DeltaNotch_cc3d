@@ -318,12 +318,16 @@ class MitosisSteppable(MitosisSteppableBase):
                 NoOfDivCells+=1
                 
         for cell in cells_to_divide:
+<<<<<<< HEAD
             # break links between apical and basal before cell division
             for fpp in self.getInternalFocalPointPlasticityDataList(cell):
                 cell2=fpp.neighborAddress
                 self.focalPointPlasticityPlugin.deleteInternalFocalPointPlasticityLink(cell,cell2)
             self.divideCellAlongMajorAxis(cell)
             
+=======
+            self.divideCellAlongMinorAxis(cell)
+>>>>>>> parent of b79f33e... no polar cells with elastic constraint
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
