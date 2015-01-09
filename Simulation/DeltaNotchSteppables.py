@@ -151,7 +151,6 @@ class InitialCondition(MitosisSteppableBase):
             cell.targetVolume = cell.targetVolume*2/3
             Apical.lambdaVolume = cell.lambdaVolume
             Basal.lambdaVolume = cell.lambdaVolume
-            
             # assign Cell cluster
             reassignIdFlag=self.inventory.reassignClusterId(Apical,cell.clusterId) # changing cluster id to 1536 for cell 'cell'
             reassignIdFlag=self.inventory.reassignClusterId(Basal,cell.clusterId) # changing cluster id to 1536 for cell 'cell'
@@ -168,7 +167,7 @@ class Growth(MitosisSteppableBase):
         # Assign Property for Cell ID = 1
         cells_to_die=[]
         for cell in self.cellListByType(1):
-            cell.targetVolume = tVol*random.uniform(0.75,1.25)# Make the initial target Volume of diff cells constant       
+            cell.targetVolume = tVol# Make the initial target Volume of diff cells constant       
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
@@ -183,17 +182,17 @@ class Growth(MitosisSteppableBase):
             if cell.type == 1:
                 # Assume Growth only happens at the bottom of crypt
                 if cell.targetVolume:
-                    if mcs >50 and cell.yCOM < self.dim.y*0.5:
-                    # Program Cell Growth
+                    cellDict=self.getDictionaryAttribute(cell)
+                    # Program Stem Cell Growth
+                    if mcs >50 and cell.yCOM < self.dim.y*0.3 and cellDict['N']>0.5:
                         # access/modification of a dictionary attached to cell - make sure to decalare in main script that you will use such attribute
-                        cellDict=self.getDictionaryAttribute(cell)
-#                         if cellDict["G"] == True:
                         cell.targetVolume+= 1*random.uniform(0.5,1.25)
-#                         else:
-#                             cell.targetVolume = 1000    
+                    # Program TA Cell Growth
+                    elif mcs >50 and cell.yCOM > self.dim.y*0.3 and cell.yCOM < self.dim.y*0.5:
+                        cell.targetVolume+= 1.5*random.uniform(0.5,1.25)
                     # The diff cells remain unchanged    
-#                     else:
-#                         cell.targetVolume = tVol*random.uniform(1,1.25)
+                    else:
+                        cell.targetVolume = tVol*random.uniform(1,1.25)
 # Seperate cell death from cell growth 
                 # Program Cell Death
                 # Set up threshold to kill cells when cells go above the threshold
@@ -294,7 +293,6 @@ class DeltaNotchClass(SteppableBasePy):
             cellDict['N']=state['N']  
             cellDict['B']=state['B']
             cellDict['R']=state['R']
-            
             #print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~N:%f,\tD:%f,\tB:%f~~~~~~~~~~~~\n" %(cell.id,state['N'],state['D'],state['B'])
         self.timestepSBML()
 #############################
@@ -308,11 +306,13 @@ class MitosisSteppable(MitosisSteppableBase):
         
         for cell in self.cellListByType(1):
             cellDict=self.getDictionaryAttribute(cell)
-            if mcs>50 and cell.yCOM<self.dim.y*0.3 and cell.volume > tVol*1.5 and cellDict['N']>0.5:
+            if mcs>50 and cell.yCOM<self.dim.y*0.3 and cellDict['N']>0.5 and cell.volume > tVol*1.5:
+                # stem cell division
                 print "~~~~~~~~~~~~~~~~Stem cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
                 cells_to_divide.append(cell)
                 NoOfDivCells+=1
             elif mcs>50 and cell.yCOM<self.dim.y*0.5 and cell.yCOM>self.dim.y*0.3 and cell.volume > tVol*1.75:   
+                # TA cell division
                 print "~~~~~~~~~~~~~~~~TA cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
                 cells_to_divide.append(cell)
                 NoOfDivCells+=1
