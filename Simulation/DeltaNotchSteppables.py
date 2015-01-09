@@ -9,7 +9,7 @@ from PlayerPython import *
 from math import *
 from PySteppablesExamples import MitosisSteppableBase
 
-tVol = 800
+tVol = 500
 # Calcuate Cell Death due to Threshold and BM touching
 NoOfDeathBM = 0
 NoOfDeathThre = 0
@@ -151,6 +151,10 @@ class InitialCondition(MitosisSteppableBase):
             cell.targetVolume = cell.targetVolume*2/3
             Apical.lambdaVolume = cell.lambdaVolume
             Basal.lambdaVolume = cell.lambdaVolume
+<<<<<<< HEAD
+=======
+            
+>>>>>>> parent of 0b40047... no Polar cells + random division rate
             # assign Cell cluster
             reassignIdFlag=self.inventory.reassignClusterId(Apical,cell.clusterId) # changing cluster id to 1536 for cell 'cell'
             reassignIdFlag=self.inventory.reassignClusterId(Basal,cell.clusterId) # changing cluster id to 1536 for cell 'cell'
@@ -167,7 +171,13 @@ class Growth(MitosisSteppableBase):
         # Assign Property for Cell ID = 1
         cells_to_die=[]
         for cell in self.cellListByType(1):
+<<<<<<< HEAD
             cell.targetVolume = tVol# Make the initial target Volume of diff cells constant       
+=======
+            # Assign stochastic initial conditions for stem cell/TA cell volume
+            if cell.yCOM < self.dim.y*0.7:
+                cell.targetVolume = tVol*random.uniform(0.5,1.5)# Make the initial target Volume of diff cells constant       
+>>>>>>> parent of 0b40047... no Polar cells + random division rate
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
@@ -186,6 +196,7 @@ class Growth(MitosisSteppableBase):
                     # Program Stem Cell Growth
                     if mcs >50 and cell.yCOM < self.dim.y*0.3 and cellDict['N']>0.5:
                         # access/modification of a dictionary attached to cell - make sure to decalare in main script that you will use such attribute
+<<<<<<< HEAD
                         cell.targetVolume+= 1*random.uniform(0.5,1.25)
                     # Program TA Cell Growth
                     elif mcs >50 and cell.yCOM > self.dim.y*0.3 and cell.yCOM < self.dim.y*0.5:
@@ -193,6 +204,16 @@ class Growth(MitosisSteppableBase):
                     # The diff cells remain unchanged    
                     else:
                         cell.targetVolume = tVol*random.uniform(1,1.25)
+=======
+                        cellDict=self.getDictionaryAttribute(cell)
+#                         if cellDict["G"] == True:
+                        cell.targetVolume+= 1
+#                         else:
+#                             cell.targetVolume = 1000    
+                    # The diff cells remain unchanged    
+                    else:
+                        cell.targetVolume = tVol
+>>>>>>> parent of 0b40047... no Polar cells + random division rate
 # Seperate cell death from cell growth 
                 # Program Cell Death
                 # Set up threshold to kill cells when cells go above the threshold
@@ -306,6 +327,7 @@ class MitosisSteppable(MitosisSteppableBase):
         
         for cell in self.cellListByType(1):
             cellDict=self.getDictionaryAttribute(cell)
+<<<<<<< HEAD
             if mcs>50 and cell.yCOM<self.dim.y*0.3 and cellDict['N']>0.5 and cell.volume > tVol*1.5:
                 # stem cell division
                 print "~~~~~~~~~~~~~~~~Stem cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
@@ -328,6 +350,14 @@ class MitosisSteppable(MitosisSteppableBase):
 =======
             self.divideCellAlongMinorAxis(cell)
 >>>>>>> parent of b79f33e... no polar cells with elastic constraint
+=======
+            if mcs>10 and cell.yCOM<self.dim.y*0.5 and cell.volume > tVol*1.5:
+                print "~~~~~~~~~~~~~~~~cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
+                cells_to_divide.append(cell)
+                NoOfDivCells+=1
+        for cell in cells_to_divide:
+            self.divideCellAlongMinorAxis(cell)
+>>>>>>> parent of 0b40047... no Polar cells + random division rate
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
