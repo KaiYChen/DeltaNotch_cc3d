@@ -14,15 +14,15 @@
       <species id="R" compartment="compartment" initialConcentration="0" boundaryCondition="false"/>
     </listOfSpecies>
     <listOfParameters>
-      <parameter id="BN0" value="0" constant="true"/>
-      <parameter id="BN" value="1" constant="true"/>
+      <parameter id="BN0" value="1" constant="true"/>
+      <parameter id="BN" value="0" constant="true"/>
       <parameter id="p" value="3" constant="true"/>
       <parameter id="KN" value="0.1" constant="true"/>
       <parameter id="AN" value="1" constant="true"/>
-      <parameter id="Kc" value="1" constant="true"/>
+      <parameter id="Kc" value="0" constant="true"/>
       <parameter id="Kt" value="1" constant="true"/>
-      <parameter id="BD0" value="0" constant="true"/>
-      <parameter id="BD" value="1" constant="true"/>
+      <parameter id="BD0" value="0.01" constant="true"/>
+      <parameter id="BD" value="3" constant="true"/>
       <parameter id="KD" value="0.01" constant="true"/>
       <parameter id="h" value="3" constant="true"/>
       <parameter id="AD" value="1" constant="true"/>
@@ -98,15 +98,15 @@
                 <apply>
                   <times/>
                   <ci> Kc </ci>
-                  <ci> D </ci>
                   <ci> N </ci>
+                  <ci> D </ci>
                 </apply>
               </apply>
               <apply>
                 <times/>
                 <ci> Kt </ci>
                 <ci> N </ci>
-                <ci> D </ci>
+                <ci> Davg </ci>
               </apply>
             </apply>
           </math>
@@ -126,6 +126,8 @@
           <modifierSpeciesReference species="Davg"/>
           <modifierSpeciesReference species="N"/>
           <modifierSpeciesReference species="N"/>
+          <modifierSpeciesReference species="Navg"/>
+          <modifierSpeciesReference species="Navg"/>
         </listOfModifiers>
         <kineticLaw>
           <math xmlns="http://www.w3.org/1998/Math/MathML">
@@ -178,15 +180,15 @@
                 <apply>
                   <times/>
                   <ci> Kc </ci>
-                  <ci> D </ci>
                   <ci> N </ci>
+                  <ci> D </ci>
                 </apply>
               </apply>
               <apply>
                 <times/>
                 <ci> Kt </ci>
-                <ci> N </ci>
                 <ci> D </ci>
+                <ci> Navg </ci>
               </apply>
             </apply>
           </math>

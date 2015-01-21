@@ -1,4 +1,5 @@
 <Simulation version="3.5.1">
+   <XMLScript Type="XML">Simulation/LI.sbml</XMLScript>
    <PythonScript Type="PythonScript">Simulation/DeltaNotch.py</PythonScript>
    <Resource Type="Python">Simulation/DeltaNotchSteppables.py</Resource>
 </Simulation>

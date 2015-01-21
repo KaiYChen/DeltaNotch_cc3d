@@ -12,7 +12,7 @@ def configureSimulation(sim):
 
     potts=cc3d.ElementCC3D("Potts")
     potts.ElementCC3D("Dimensions",{"x":70,"y":150,"z":70})
-    potts.ElementCC3D("Steps",{},10000)
+    potts.ElementCC3D("Steps",{},2000)
     potts.ElementCC3D("Temperature",{},15)#original 30   
     potts.ElementCC3D("NeighborOrder",{},3)
 
@@ -20,6 +20,7 @@ def configureSimulation(sim):
     cellType.ElementCC3D("CellType", {"TypeName":"Medium","TypeId":"0"})
     cellType.ElementCC3D("CellType", {"TypeName":"TypeA" ,"TypeId":"1"}) # Epithelial cells
     cellType.ElementCC3D("CellType", {"TypeName":"BM" ,"TypeId":"2"})    # Meschymal cells
+    cellType.ElementCC3D("CellType", {"TypeName":"CT" ,"TypeId":"3"})    # central tube cells
 
     # assign Energe
     contact=cc3d.ElementCC3D("Plugin",{"Name":"Contact"})
@@ -28,7 +29,12 @@ def configureSimulation(sim):
     contact.ElementCC3D("Energy", {"Type1":"Medium", "Type2":"BM"},10)
     contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"TypeA"},5 )
     contact.ElementCC3D("Energy", {"Type1":"TypeA",  "Type2":"BM"},1)
-    contact.ElementCC3D("Energy", {"Type1":"BM", "Type2":"BM"},0)
+    contact.ElementCC3D("Energy", {"Type1":"BM",  "Type2":"BM"},0)
+    contact.ElementCC3D("Energy", {"Type1":"CT",  "Type2":"TypeA"},10)
+    contact.ElementCC3D("Energy", {"Type1":"CT",  "Type2":"Medium"},10)
+    contact.ElementCC3D("Energy", {"Type1":"CT",  "Type2":"BM"},10)
+    contact.ElementCC3D("Energy", {"Type1":"CT",  "Type2":"CT"},0)
+    
     contact.ElementCC3D("NeighborOrder",{},5)
 
     volume = cc3d.ElementCC3D("Plugin",{"Name":"VolumeLocalFlex"})

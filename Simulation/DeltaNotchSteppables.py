@@ -9,10 +9,16 @@ from PlayerPython import *
 from math import *
 from PySteppablesExamples import MitosisSteppableBase
 
-tVol = 800
+tVol = 1000
 # Calcuate Cell Death due to Threshold and BM touching
 NoOfDeathBM = 0
 NoOfDeathThre = 0
+# threshold for simulation
+Thr_mcs = 100
+Thr_TA = 0.7
+Thr_SC = 0.3
+Thr_N  = 0.5
+GR=2.0
 class InitialCondition(MitosisSteppableBase):
     def __init__(self,_simulator,_frequency):
         MitosisSteppableBase.__init__(self,_simulator,_frequency)
@@ -20,15 +26,44 @@ class InitialCondition(MitosisSteppableBase):
         radi = self.dim.x/2
         # Assign Property for Cell ID = 1
         cells_to_die=[]
-        
         for cell in self.cellListByType(1):
             cell.targetVolume = tVol
             cell.lambdaVolume = 5
-    
-        # Basal Membrane Generation
+            
         radi = int(self.dim.x/2)
+        # central tube generation
         pt=CompuCell.Point3D(0,0,0)
-        Wall = self.potts.createCellG(pt) # the arguments are (type,pt,xSize,ySize,zSize)  
+        Tube = self.potts.createCellG(pt) # the arguments are (type,pt,xSize,ySize,zSize)
+        Tube.type = 3
+        totalNumOfSeg = 1
+        segm = []   
+        cellsToDelete=[]
+        for pty in range(0,self.dim.y):
+            for ptx in range(0,self.dim.x):
+                for ptz in range(0,self.dim.z):
+                    pt.y=pty
+                    pt.x=ptx
+                    pt.z=ptz        
+                    # Generate Tube structure
+                    if pty>= radi:
+                        if ((ptx-radi)**2+(ptz-radi)**2)<=((radi-5)/2)**2:
+                        # central lumen
+                            overwrittenCell=self.cellField.get(pt)
+                            self.cellField.set(pt,Tube)
+                            self.cleanDeadCells()
+                    # Generate Semi-Sphere Sturcture ((Bottom of the crypt)
+                    elif pty < radi:
+                        if ((ptx-radi)**2+(pty-radi)**2+(ptz-radi)**2)<=((radi-5)/2)**2:
+                            self.cellField.set(pt,Tube)
+                            self.cleanDeadCells()
+        # Assign property for Cell type = 3
+        for cell in self.cellListByType(3): 
+            cell.targetVolume = cell.volume
+            cell.lambdaVolume = 15000
+
+    # Basal Membrane Generation
+        pt=CompuCell.Point3D(0,0,0)
+        Wall = self.potts.createCellG(pt) # the arguments are (type,pt,xSize,ySize,zSize)
         Wall.type = 2
         totalNumOfSeg = 15
         segm = []   
@@ -39,69 +74,35 @@ class InitialCondition(MitosisSteppableBase):
                     pt.y=pty
                     pt.x=ptx
                     pt.z=ptz        
-                    
                     # Generate Tube structure
                     if pty>= radi:
-                        if ((ptx-radi)**2+(ptz-radi)**2)<=radi**2 and ((ptx-radi)**2+(ptz-radi)**2)>=(radi-5)**2:
-                            overwrittenCell=self.cellField.get(pt)  
-
+                        if ((ptx-radi)**2+(ptz-radi)**2)>=(radi-5)**2:
+                            overwrittenCell=self.cellField.get(pt)
                             self.cellField.set(pt,Wall)
                             self.cleanDeadCells()
-                            
                             ang = math.atan2(ptx-radi,ptz-radi)*(180./math.pi)+180
                             segN= int(ang/(360/totalNumOfSeg))
                             if segN ==15:
                                 segN = 0
                             segm.append([segN,pt])
-                        
-                        elif ((ptx-radi)**2+(ptz-radi)**2)>radi**2:
-                            self.cellField.set(pt,CompuCell.getMediumCell())
-                            self.cleanDeadCells()
+
                     # Generate Semi-Sphere Sturcture ((Bottom of the crypt)
-                 
                     elif pty < radi:
-                        if ((ptx-radi)**2+(pty-radi)**2+(ptz-radi)**2)<=radi**2 and ((ptx-radi)**2+(pty-radi)**2+(ptz-radi)**2)>=(radi-5)**2:
-                            
-                            
+                        if ((ptx-radi)**2+(pty-radi)**2+(ptz-radi)**2)>=(radi-5)**2:
                             self.cellField.set(pt,Wall)
                             self.cleanDeadCells()
-                            
-                        elif ((ptx-radi)**2+(pty-radi)**2+(ptz-radi)**2)>radi**2:
-                            
-                            overwrittenCell=self.cellField.get(pt)
-                            if pt.x!=0 and pt.y!=0 and pt.z!=0: # this line is essential because you do not wan to remove wall cell which sits at (0,0,0)
-                                self.cellField.set(pt,CompuCell.getMediumCell())
-                                self.cleanDeadCells()
                                 
         # now we can overwrite (0,0,0) with medium
         pt.x=0
         pt.y=0
         pt.z=0
         self.cellField.set(pt,CompuCell.getMediumCell())
-        
-        self.divideCellOrientationVectorBased(Wall,0,0,1)
-        for divN in range(0,3):        
-            cell_to_divide=[]    
-            # iterating over cells of type 2        
-            for cell in self.cellListByType(2):
-                cell_to_divide.append(cell)
-            for cell in cell_to_divide:
-                DiviVectorX = (cell.xCOM-radi)
-                DiviVectorZ = (cell.zCOM-radi) 
-                self.divideCellOrientationVectorBased(cell,-DiviVectorZ,0,DiviVectorX) 
-        for divN in range(0,4):
-            cell_to_divide=[]    
-            # iterating over cells of type 2        
-            for cell in self.cellListByType(2):
-                cell_to_divide.append(cell)
-            for cell in cell_to_divide:
-                self.divideCellOrientationVectorBased(cell,0,1,0) 
-                
+
         # Assign property for Cell type = 2
         for cell in self.cellListByType(2): 
             cell.targetVolume = cell.volume
             cell.lambdaVolume = 10000000
-
+            
         cells_to_die=[]
         for cell in self.cellList:
             if cell.type == 1:                    
@@ -144,13 +145,11 @@ class Growth(MitosisSteppableBase):
         cells_to_die=[]
         for cell in self.cellListByType(1):
             # Assign stochastic initial conditions for stem cell/TA cell volume
-            if cell.yCOM < self.dim.y*0.7:
-                cell.targetVolume = tVol*random.uniform(0.5,1.8)# Make the initial target Volume of diff cells constant       
+            cell.targetVolume = tVol*random.uniform(0.95,1.5)# Make the initial target Volume of diff cells constant  
     def updateAttributes(self):
         childCell = self.mitosisSteppable.childCell
         parentCell = self.mitosisSteppable.parentCell
         childCell.type = parentCell.type
-
     def step(self,mcs):
         cells_to_die=[]
         global NoOfDeathThre,NoOfDeathBM
@@ -159,26 +158,26 @@ class Growth(MitosisSteppableBase):
         for cell in self.cellList:
             if cell.type == 1:
                 # Assume Growth only happens at the bottom of crypt
+                cellDict=CompuCell.getPyAttrib(cell)
                 if cell.targetVolume:
-                    if mcs >10 and cell.yCOM < self.dim.y*0.5:
-                    # Program Cell Growth
-                        # access/modification of a dictionary attached to cell - make sure to decalare in main script that you will use such attribute
-                        cellDict=self.getDictionaryAttribute(cell)
-#                         if cellDict["G"] == True:
-                        cell.targetVolume+= 1*random.uniform(0.2,1.8)#random growth rate
-#                         else:
-#                             cell.targetVolume = 1000    
-                    # The diff cells remain unchanged    
+                    if mcs >Thr_mcs and cell.yCOM < self.dim.y*Thr_TA and cell.yCOM > self.dim.y*Thr_SC:
+                        # Program TA Cell Growth
+                        cell.targetVolume+= GR*random.uniform(0.85,1.25)#random growth rate
+                    elif mcs >Thr_mcs and cell.yCOM < self.dim.y*Thr_SC and cellDict['N']>Thr_N:
+                        # Program Stem Cell Growth
+                        cell.targetVolume+= GR*random.uniform(0.85,1.25)#random growth rate   
+                    elif cell.volume<=tVol*1.5:
+                        cell.targetVolume+= GR*random.uniform(0.85,1.25)#random growth rate   
                     else:
-                        cell.targetVolume = tVol*1.25
-# Seperate cell death from cell growth 
+                        # The diff cells remain unchanged 
+                        cell.targetVolume = tVol*1.5
+                # Seperate cell death from cell growth 
                 # Program Cell Death
                 # Set up threshold to kill cells when cells go above the threshold
                 if cell.yCOM > self.dim.y-10:
                     cells_to_die.append(cell)
                     NoOfDeathThre+=1
                     print "       ~~~~~~~~~~~~~~~~~~Dieing cell Thre~~~~~~~~~~~~~~~",cell.id,cell.type,cell.volume,cell.targetVolume
-                
                 cellNeighborList=self.getCellNeighbors(cell) # generates list of neighbors of cell 'cell'
                 wallflag=0
                 # Kill cells when the cells not touching BM
@@ -209,7 +208,7 @@ class DeltaNotchClass(SteppableBasePy):
         # adding options that setup SBML solver integrator - these are optional but useful when encounteting integration instabilities              
         Name = "DeltaNotch"
         Key  = "DN"
-        modelFile='Simulation/DN_Collier_1.sbml' 
+        modelFile='Simulation/PFLIMI.sbml' 
         options={'relative':1e-10,'absolute':1e-12,'steps':10}
         self.setSBMLGlobalOptions(options)
         self.addSBMLToCellTypes(_modelFile=modelFile,_modelName="DN",_types=[self.TYPEA],_stepSize=0.2)  
@@ -220,6 +219,25 @@ class DeltaNotchClass(SteppableBasePy):
             state['N'] = random.uniform(0.2,1.0)
             state['B'] = random.uniform(0.9,1.0)
             state['R'] = random.uniform(0.9,1.0)
+            
+#             state['Davg']=0.5
+#             state['Navg']=0.5
+#             state['BN0'] = 0.0
+#             state['BN'] = 1.0
+#             state['p'] = 3.0
+#             state['KN'] = 0.1
+#             state['AN'] = 1.0
+#             state['Kc'] = 1.0
+#             state['Kt'] = 1.0
+#             state['BD0'] = 0.0
+#             state['BD'] = 1.0
+#             state['KD'] = 0.01
+#             state['h'] = 3.0
+#             state['AD'] = 1.0
+#             state['BetaB'] = 1.0
+#             state['GammaB']=1 
+#             state['AR'] = 1.0
+            
             self.setSBMLState(_modelName=Key,_cell=cell,_state=state)
             cellDict=self.getDictionaryAttribute(cell)
             cellDict['D']=state['D']
@@ -228,44 +246,38 @@ class DeltaNotchClass(SteppableBasePy):
             cellDict['R']=state['R']
     def step(self,mcs):
         for cell in self.cellListByType(1):
-            Davg=0.0; nn=0
+            Davg=0.0; nn=0; Navg=0.0
             compartmentList=self.inventory.getClusterCells(cell.clusterId)
             neighborList = []
             for cell2 in compartmentList:
                 for neighbor , commonSurfaceArea in self.getCellNeighborDataList(cell2):                
                     if neighbor:
-                        #print "neighbor.id",neighbor.id,"neighbor.type=",neighbor.type,"clusterId=",neighbor.clusterId
                         neighborList.append(neighbor)
-            #print "~~~~~~~~~~neighbor List~~~~~",neighborList
             for neighbor , commonSurfaceArea in self.getCellNeighborDataList(cell):
                 if (neighbor and neighbor.type == 1):
                     nn+=1
                     state=self.getSBMLState(_modelName='DN',_cell=neighbor)
-                    Davg+=state['D']   
+                    Davg+=state['D']
+                    Navg+=state['N']
             if (nn>0):
                 Davg=Davg/nn
-            
+                Navg=Navg/nn
             state={}
-            yCOM=(cell.yCOM/self.dim.y)
-            
-            if (cell.yCOM<self.dim.y*0.3):
-                GammaB = 1
+            if (cell.yCOM<self.dim.y*Thr_SC):
+                GammaB = 1.0
             else:
-                GammaB = 10
+                GammaB = 10.0
             state['Davg']=Davg
-            state['GammaB']=GammaB
-            #print "~~~~~~~~~~~~~~~~~~~~~~~~~~~Davg:%f~~~~~~~~~~~~" %Davg
-            #print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~~~~~GammaB:%f~~~~~~~~~~~~" %(cell.id,GammaB)       
+            state['Navg']=Navg 
+            state['GammaB']=GammaB 
             self.setSBMLState(_modelName='DN',_cell=cell,_state=state)
             state=self.getSBMLState(_modelName='DN',_cell=cell)
-            testB=self.getSBMLValue(_modelName='DN',_valueName='GammaB',_cell=cell)
-            #print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~~~~~TESTB:%f~~~~~~~~~~~~" %(cell.id,testB)                   
+#             testB=self.getSBMLValue(_modelName='DN',_valueName='GammaB',_cell=cell)                
             cellDict=self.getDictionaryAttribute(cell)
             cellDict['D']=state['D']
             cellDict['N']=state['N']  
             cellDict['B']=state['B']
             cellDict['R']=state['R']
-            #print "cell ID:%d~~~~~~~~~~~~~~~~~~~~~~~N:%f,\tD:%f,\tB:%f~~~~~~~~~~~~\n" %(cell.id,state['N'],state['D'],state['B'])
         self.timestepSBML()
 #############################
 class MitosisSteppable(MitosisSteppableBase):
@@ -277,12 +289,16 @@ class MitosisSteppable(MitosisSteppableBase):
         cells_to_divide=[]
         for cell in self.cellListByType(1):
             cellDict=self.getDictionaryAttribute(cell)
-            if mcs>10 and cell.yCOM<self.dim.y*0.5 and cell.volume > tVol*1.75*random.uniform(0.75,1.25):
-                randDiv = random.randint(1,4)# apply randoness to avoid synchronized division
-                if randDiv >3:
-                    print "~~~~~~~~~~~~~~~~cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
-                    cells_to_divide.append(cell)
-                    NoOfDivCells+=1
+            if mcs>Thr_mcs and cell.yCOM<self.dim.y*Thr_SC and cell.volume > tVol*1.5 and cellDict['N']>Thr_N:
+                # programmed stem cell division
+                print "~~~~~~~~~~~~~~~~Stem cell to divide~~~~~~~~~N:%f, y:%f" %(cellDict['N'],cell.yCOM)
+                cells_to_divide.append(cell)
+                NoOfDivCells+=1
+            elif mcs>Thr_mcs and cell.yCOM<self.dim.y*Thr_TA and cell.yCOM>self.dim.y*Thr_SC and cell.volume > tVol*2:
+                # programmed TA cell division
+                print "~~~~~~~~~~~~~~~~TA cell to divide~~~~~~~~~y:%f" %(cell.yCOM)
+                cells_to_divide.append(cell)
+                NoOfDivCells+=1
         for cell in cells_to_divide:
             self.divideCellAlongMajorAxis(cell)
     def updateAttributes(self):
